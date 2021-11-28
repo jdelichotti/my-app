@@ -3,12 +3,11 @@ import { useEffect, useState } from 'react'
 import Web3Modal from "web3modal"
 import Link from 'next/link';
 
-import {
-   smartbetaddress
-} from '../config'
+import { smartbetaddress } from '../config'
+
 import SmartBet from '../contracts/SmartBet.json'
 
-export default function BetsReady() {
+export default function BetDashboard() {
   const [bets, setBets] = useState([])
   const [loadingState, setLoadingState] = useState('not-loaded')
   const betStates = ['BetFunding', 'Created', 'Open', 'Closed', 'ResultsReady', 'ReadyForPayment', 'Finished']  
@@ -17,7 +16,7 @@ export default function BetsReady() {
   }, [])
 
   async function loadBets() {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const provider = new ethers.providers.Web3Provider(window.ethereum);    
     const contract = new ethers.Contract(smartbetaddress, SmartBet.abi, provider)    
     const data = await contract.getAvailableBets()
 
@@ -38,9 +37,65 @@ export default function BetsReady() {
     }))
     setBets(betsItems)
     setLoadingState('loaded')
+     
     //console.log('items: ', bets)
 
   }
+
+  async function openBet(betId) {
+    
+    const web3Modal = new Web3Modal()
+    const connection = await web3Modal.connect()
+    const provider = new ethers.providers.Web3Provider(connection)    
+    const signer = provider.getSigner()
+
+    let contract = new ethers.Contract(smartbetaddress, SmartBet.abi, signer)
+    let transaction = await contract.openBet(betId,{from:signer.address})
+    let tx = await transaction.wait()
+    loadBets()
+  }
+
+  async function closeBet(betId) {
+    
+    const web3Modal = new Web3Modal()
+    const connection = await web3Modal.connect()
+    const provider = new ethers.providers.Web3Provider(connection)    
+    const signer = provider.getSigner()
+
+    let contract = new ethers.Contract(smartbetaddress, SmartBet.abi, signer)
+    let transaction = await contract.closeBet(betId,{from:signer.address})
+    let tx = await transaction.wait()
+    loadBets()
+  }
+
+  async function calcPaymentBet(betId) {
+    
+    const web3Modal = new Web3Modal()
+    const connection = await web3Modal.connect()
+    const provider = new ethers.providers.Web3Provider(connection)    
+    const signer = provider.getSigner()
+
+    let contract = new ethers.Contract(smartbetaddress, SmartBet.abi, signer)
+    let transaction = await contract.calcPayments(betId,{from:signer.address})
+    let tx = await transaction.wait()
+    loadBets()
+  }
+
+
+  async function ReleasePaymentBet(betId) {
+    
+    const web3Modal = new Web3Modal()
+    const connection = await web3Modal.connect()
+    const provider = new ethers.providers.Web3Provider(connection)    
+    const signer = provider.getSigner()
+
+    let contract = new ethers.Contract(smartbetaddress, SmartBet.abi, signer)
+    let transaction = await contract.releasePayments(betId,{from:signer.address})
+    let tx = await transaction.wait()
+    loadBets()
+  }
+
+
 
 
   
@@ -55,6 +110,12 @@ export default function BetsReady() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th
+                  scope="col"
+                  className="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Bet ID
+                </th>
                 <th
                   scope="col"
                   className="px-3 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -98,13 +159,19 @@ export default function BetsReady() {
                   Bet State
                 </th>
                 <th scope="col" className="relative px-3 py-1">
-                  <span className="sr-only">Local Wins!</span>
+                  <span className="sr-only">Open</span>
                 </th>               
                 <th scope="col" className="relative px-3 py-1">
-                  <span className="sr-only">Visitor Wins!</span>
+                  <span className="sr-only">Close</span>
                 </th>
                 <th scope="col" className="relative px-3 py-1">
-                  <span className="sr-only">Add Liquidity</span>
+                  <span className="sr-only">Define Results</span>
+                </th>
+                <th scope="col" className="relative px-3 py-1">
+                  <span className="sr-only">Calc Payments</span>
+                </th>                                                                                            
+                <th scope="col" className="relative px-3 py-1">
+                  <span className="sr-only">Release Payments</span>
                 </th>
               </tr>
             </thead>
@@ -115,22 +182,25 @@ export default function BetsReady() {
                             (
                             <tr key={betItem.betId}>
                                 <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="text-sm text-gray-900">{betItem.betId}</div>
+                                </td>                                
+                                <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="text-sm text-gray-900">{betItem.localTeam}</div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="text-sm text-gray-500">{betItem.visitorTeam}</div>
                                 </td>                                
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-500">{betItem.initialAmount} eth</div>
+                                    <div className="text-sm text-gray-500">{betItem.initialAmount} Eth</div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-500">{betItem.localWiningAmount} eth</div>
+                                    <div className="text-sm text-gray-500">{betItem.localWiningAmount}</div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-500">{betItem.visitorWiningAmount} eth</div>
+                                    <div className="text-sm text-gray-500">{betItem.visitorWiningAmount}</div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-500">{betItem.drawnAmount} eth</div>
+                                    <div className="text-sm text-gray-500">{betItem.drawnAmount}</div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
@@ -138,34 +208,30 @@ export default function BetsReady() {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <Link href={{ pathname: '/add-gambler-bet' , query: { id: betItem.betId, optionSelected: 0} }}>
-                                    <a  className="text-indigo-600 hover:text-indigo-900">
-                                    <button className="w-full bg-green-500 text-white font-bold py-2 px-0 rounded">Local Wins</button>
-                                    </a>
-                                </Link>
+                                  <a  className="text-indigo-600 hover:text-indigo-900">
+                                  <button className="w-full bg-green-500 text-white font-bold py-2 px-0 rounded" onClick={() => closeBet(betItem.betId)}>Close</button>
+                                  </a>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <Link href={{ pathname: '/add-gambler-bet', query: { id: betItem.betId , optionSelected:1 }}}>
-                                    <a  className="text-indigo-600 hover:text-indigo-900">
-                                    <button className="w-full bg-green-500 text-white font-bold py-2 px-0 rounded">Visitor Win</button>
-                                    </a>
+                                <Link href={{ pathname: '/define-result', query: { id: betItem.betId }}}>
+                                  <a  className="text-indigo-600 hover:text-indigo-900">
+                                  <button className="w-full bg-green-500 text-white font-bold py-2 px-0 rounded">Define Result</button>
+                                  </a>
                                 </Link>
+                                </td>                                
+
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                  <a  className="text-indigo-600 hover:text-indigo-900">
+                                  <button className="w-full bg-green-500 text-white font-bold py-2 px-0 rounded" onClick={() => ReleasePaymentBet(betItem.betId)}>Release Payment</button>
+                                  </a>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <Link href={{ pathname: '/add-gambler-bet', query: { id: betItem.betId, optionSelected: 2 } }}>
+                                <Link href={{ pathname: '/bet-results', query: { id: betItem.betId} }}>
                                     <a  className="text-indigo-600 hover:text-indigo-900">
-                                    <button className="w-full bg-green-500 text-white font-bold py-2 px-0 rounded">Drawn</button>
+                                    <button className="w-full bg-blue-500 text-white font-bold py-2 px-0 rounded">Details</button>
                                     </a>
                                 </Link>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <Link href={{ pathname: '/add-sponsor-liquidity' , query: { id: betItem.betId }}}>
-                                    <a  className="text-indigo-600 hover:text-indigo-900">
-                                    <button className="w-full bg-green-500 text-white font-bold py-2 px-0 rounded">Add Liquidity</button>
-                                    </a>
-                                </Link>
-                                </td>
-                             
                             </tr>
                         )
                     )

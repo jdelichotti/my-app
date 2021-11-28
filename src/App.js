@@ -1,25 +1,33 @@
-import logo from './logo.svg';
-import './App.css';
+import '../styles/globals.css'
+import Link from 'next/link'
 
-function App() {
+
+function Betplace({ Component, pageProps }) {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <nav className="border-b p-6">
+        <p className="text-4xl text-green-700 font-bold">SmartBet</p>
+        <div className="flex mt-4">
+          <Link href="/">
+            <a className="mr-4 text-blue-500">
+              Bets
+            </a>
+          </Link>      
+          <Link href="/bet-administration">
+            <a className="mr-6 text-blue-500">
+              Bet Administration
+            </a>
+          </Link>
+          <Link href="/create-bet">
+            <a className="mr-6 text-blue-500">
+              Create Bet
+            </a>
+          </Link>
+        </div>
+      </nav>
+      <Component {...pageProps} />
     </div>
-  );
+  )
 }
 
-export default App;
+export default Betplace
