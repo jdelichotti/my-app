@@ -2,11 +2,14 @@ import { ethers } from 'ethers'
 import { useEffect, useState } from 'react'
 import Web3Modal from "web3modal"
 import Link from 'next/link';
-
+/*
 import {
    smartbetaddress
-} from '../config'
-import SmartBet from '../contracts/SmartBet.json'
+} from 'config.js'*/
+import SmartBet from './contracts/SmartBet.json'
+const smartbetaddress = "0xc99ACCb9869102bE605aC6abB3e43d167bC609C1"
+
+
 
 export default function BetsReady() {
   const [bets, setBets] = useState([])
